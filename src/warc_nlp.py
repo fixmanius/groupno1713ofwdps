@@ -1,33 +1,46 @@
 import warc
 import nltk
 from nltk.corpus import stopwords
+from nltk.chunk import conlltags2tree, tree2conlltags
 
 #NLP function
 def nlp(text):
+	text="Hello Mr. Trump, how are you doing today? The weather in Amsterdam is great. Are you using an iPhone?"
 
-	#text="Hello Mr. Trump, how are you doing today? The weather is great, and Python is awesome. The sky is pinkish-blue. You shouldn't eat cardboard."
-
-	#Tokenize
-	words = nltk.word_tokenize(text)
-
-	#Stopwords Removal
-	stopset = set(stopwords.words('english'))
-	words = [w for w in words if not w in stopset]
-
-	sno = nltk.stem.SnowballStemmer('english')
-
-	for word in words:
-		#Snowball stemming
-		stem_word = sno.stem(word)
-		print stem_word
+	sentences = nltk.sent_tokenize(text)
+	for sentence in sentences:
 		
-	#POS-TAG
-	#tagged_words = nltk.pos_tag(words)
+		#Tokenize
+		words = nltk.word_tokenize(sentence)
 
-	#named entities
-	#ne_tagged_words = nltk.ne_chunk(tagged_words)
-	#print ne_tagged_words
-	
+		#Stopwords Removal
+		stopset = set(stopwords.words('english'))
+		words = [w for w in words if not w in stopset]		
+		
+		#Snowball stemming
+		sno = nltk.stem.SnowballStemmer('english')
+		for num, word in enumerate(words):
+			stem_word = sno.stem(word)
+			#print stem_word	
+			
+			# if num > 1:
+				# print 'TERMINATEDz '+str(num-1)
+				# break	
+			
+		#POS-TAG
+		tagged_words = nltk.pos_tag(words)
+
+		#NER
+		ne_tagged_words = nltk.ne_chunk(tagged_words)
+				
+		iob_tagged = tree2conlltags(ne_tagged_words)
+		print iob_tagged		
+		
+		'''
+		for rel in nltk.sem.extract_rels('ORG', 'LOC', doc, corpus='ieer', pattern = IN):
+			print(relextract.rtuple(rel))
+		'''
+		
 	return
 
 
