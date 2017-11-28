@@ -54,9 +54,10 @@ def do_query(query):
 	import collections, math
 
 	ELASTICSEARCH_URL = 'http://10.149.0.127:9200/freebase/label/_search'
-	TRIDENT_URL = 'http://10.141.0.11:8082/sparql'
+	#TRIDENT_URL = 'http://10.141.0.11:8082/sparql'
+	TRIDENT_URL = 'http://10.141.0.127:9001/sparql'
 
-	print('Searching for "%s"...' % query)
+	#print('Searching for "%s"...' % query)
 	response = requests.get(ELASTICSEARCH_URL, params={'q': query, 'size':100})
 	ids = set()
 	labels = {}
@@ -73,7 +74,7 @@ def do_query(query):
 			scores[freebase_id] = max(scores.get(freebase_id, 0), score)
 			labels.setdefault(freebase_id, set()).add( label )
 
-	print('Found %s results.' % len(labels))
+	#print('Found %s results.' % len(labels))
 
 
 	prefixes = """
@@ -94,7 +95,7 @@ def do_query(query):
 	}
 	"""
 
-	print('Counting KB facts...')
+	#print('Counting KB facts...')
 	facts  = {}
 	for i in ids:
 		response = requests.post(TRIDENT_URL, data={'print': False, 'query': po_template % i})
@@ -108,7 +109,8 @@ def do_query(query):
 	def get_best(i):
 		return math.log(facts[i]) * scores[i]
 
-	print('Best matches:')
+	#print('Best matches:')
+	best=None
 	for enum, i in enumerate(sorted(ids, key=get_best, reverse=True)[:3]):
 		
 		#getbest
@@ -116,7 +118,7 @@ def do_query(query):
 			best=i[8:]			
 	
 		#print('No '+str(enum+1))
-		print(i, ':', labels[i], '(facts: %s, score: %.2f)' % (facts[i], scores[i]) )
+		#print(i, ':', labels[i], '(facts: %s, score: %.2f)' % (facts[i], scores[i]) )
 		# sys.stdout.flush()
 		# response = requests.post(TRIDENT_URL, data={'print': True, 'query': same_as_template % i})
 		# if response:
@@ -139,7 +141,7 @@ for num, record in enumerate(f):
 		# print record['WARC-Target-URI']
 		# print record['Content-Length']
 		html_doc = record.payload.read()
-		print '=-=-' * 10
+		#print '=-=-' * 10
 		
 		soup = BeautifulSoup(html_doc, 'lxml')
 
@@ -149,7 +151,8 @@ for num, record in enumerate(f):
 		
 		for entity in entities:
 			entityID=do_query(entity)
-			print record['WARC-RECORD-ID']+' '+entity+' m/'+entityID
+			if entityID!=None:
+				print record['WARC-RECORD-ID']+'\t'+entity+'\tm/'+entityID
 		
 		c=c+1
 	
