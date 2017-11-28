@@ -7,11 +7,14 @@ from nltk.chunk import conlltags2tree, tree2conlltags
 def nlp(text):
 	#text="It's 75 years since Casablanca was released in America. Nicholas Barber looks at how the classic romantic melodrama was really about the plight of the displaced."
 
+	#prepare list of results
+	results_list=[]
 	sentences = nltk.sent_tokenize(text)
-	for sentence in sentences:
+	for num, sentence in enumerate(sentences):
 		
 		#Tokenize
 		words = nltk.word_tokenize(sentence)
+		
 
 		#Stopwords Removal
 		#stopset = set(stopwords.words('english'))
@@ -36,15 +39,14 @@ def nlp(text):
 		
 		propernouns = [word for word,pos in tagged_words if pos == 'NNP']
 		
-		#print propernouns
-		
+		results_list.append(propernouns)
 		
 		'''
 		for rel in nltk.sem.extract_rels('ORG', 'LOC', doc, corpus='ieer', pattern = IN):
 			print(relextract.rtuple(rel))
 		'''
-		
-	return propernouns
+	
+	return results_list
 
 
 def do_query(query):
@@ -147,16 +149,17 @@ for num, record in enumerate(f):
 
 		body=(soup.get_text().encode('utf-8'))
 		
-		entities = nlp(unicode(body,errors='ignore'))
+		sent_entities = nlp(unicode(body,errors='ignore'))
 		
-		for entity in entities:
-			entityID=do_query(entity)
-			if entityID!=None:
-				print record['WARC-RECORD-ID']+'\t'+entity+'\tm/'+entityID
+		for entities in sent_entities:
+			for entity in entities:
+				entityID=do_query(entity)
+				if entityID!=None:
+					print record['WARC-RECORD-ID']+'\t'+entity+'\tm/'+entityID
 		
 		c=c+1
 	
 	if c > 1:
-		print 'TERMINATED '+str(c)
+		#print 'TERMINATED '+str(c)
 		break
 
