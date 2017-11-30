@@ -1,3 +1,33 @@
+from pyspark import SparkContext
+import sys
+import collections
+
+sc = SparkContext("yarn", "wdps17XX")
+
+if len(sys.argv) > 1:
+	record_attribute = sys.argv[1]
+	in_file = sys.argv[2]
+else:
+	print "provide arguments!"
+	exit()
+
+print record_attribute
+print in_file
+
+# rdd = sc.newAPIHadoopFile(in_file,
+    # "org.apache.hadoop.mapreduce.lib.input.TextInputFormat",
+    # "org.apache.hadoop.io.LongWritable",
+    # "org.apache.hadoop.io.Text",
+    # conf={"textinputformat.record.delimiter": "WARC/1.0"})
+
+rdd = sc.textFile(in_file)
+print rdd.collect()
+
+#rdd.collect().foreach(println)
+#rdd.take(100).foreach(println)
+
+exit()
+
 import warc
 import nltk
 from nltk.corpus import stopwords
@@ -161,6 +191,6 @@ for num, record in enumerate(f):
 		c=c+1
 	
 	if c > 1:
-		#print 'TERMINATED '+str(c)
+		print 'TERMINATED '+str(c)
 		break
-
+		
