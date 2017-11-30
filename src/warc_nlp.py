@@ -1,3 +1,4 @@
+import sys
 import warc
 import nltk
 from nltk.corpus import stopwords
@@ -51,7 +52,6 @@ def entity_recognition(text):
 
 def do_query(query):
 	import requests
-	import sys
 	import json, re
 	import collections, math
 
@@ -136,8 +136,14 @@ f = warc.open("CommonCrawl-sample.warc") #filepath
 
 from bs4 import BeautifulSoup
 
-c=1
 
+if len(sys.argv) > 1:
+	warchkeyname = sys.argv[1]
+else:
+	print "provide keyname!"
+	exit()
+	
+c=1
 for num, record in enumerate(f):
 	if record['WARC-Type'] == 'response':
 		# print record['WARC-Record-ID']
@@ -156,7 +162,7 @@ for num, record in enumerate(f):
 			for entity in entities:
 				entityID=do_query(entity)
 				if entityID!=None:
-					print record['WARC-RECORD-ID']+'\t'+entity+'\tm/'+entityID
+					print record[warchkeyname]+'\t'+entity+'\tm/'+entityID
 		
 		c=c+1
 	

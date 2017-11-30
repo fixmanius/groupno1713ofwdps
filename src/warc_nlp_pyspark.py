@@ -11,19 +11,12 @@ else:
 	print "provide arguments!"
 	exit()
 
-print record_attribute
-print in_file
-
-# rdd = sc.newAPIHadoopFile(in_file,
-    # "org.apache.hadoop.mapreduce.lib.input.TextInputFormat",
-    # "org.apache.hadoop.io.LongWritable",
-    # "org.apache.hadoop.io.Text",
-    # conf={"textinputformat.record.delimiter": "WARC/1.0"})
-
 rdd = sc.textFile(in_file)
-print rdd.collect()
+for line in rdd.collect():
+	print line.encode("utf-8")
 
-#rdd.collect().foreach(println)
+
+#rdd.foreach(print)
 #rdd.take(100).foreach(println)
 
 exit()
@@ -186,7 +179,7 @@ for num, record in enumerate(f):
 			for entity in entities:
 				entityID=do_query(entity)
 				if entityID!=None:
-					print record['WARC-RECORD-ID']+'\t'+entity+'\tm/'+entityID
+					print record[record_attribute]+'\t'+entity+'\tm/'+entityID
 		
 		c=c+1
 	
