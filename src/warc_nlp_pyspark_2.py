@@ -1,3 +1,21 @@
+from pyspark import SparkContext
+import sys
+import collections
+
+sc = SparkContext("yarn", "wdps17XX")
+
+if len(sys.argv) > 2:
+	record_attribute = sys.argv[1]
+	in_file = sys.argv[2]
+else:
+	print "provide arguments!"
+	exit()
+	
+rdd_text=""
+rdd = sc.textFile(in_file)
+for line in rdd.collect():
+	rdd_text += line.encode("utf-8")+"\n"
+
 import sys
 import nltk
 from nltk.corpus import stopwords
@@ -131,21 +149,9 @@ def do_query(query):
 	
 # ------ main program ------
 
-f = open("CommonCrawl-sample.warc",'r')
-warc_content = f.read()
-
-from bs4 import BeautifulSoup
-
-
-if len(sys.argv) > 1:
-	record_attribute = sys.argv[1]
-else:
-	print "provide keyname!"
-	exit()
-
 #split per warc file
 d = "WARC/1.0"
-s=warc_content.split(d)
+s=rdd_text.split(d)
 
 for x in range(len(s)):
 	warc_resp=s[x].lstrip()
