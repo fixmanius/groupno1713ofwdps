@@ -4,24 +4,19 @@ import collections
 
 sc = SparkContext("yarn", "wdps17XX")
 
-if len(sys.argv) > 1:
+if len(sys.argv) > 2:
 	record_attribute = sys.argv[1]
 	in_file = sys.argv[2]
 else:
 	print "provide arguments!"
 	exit()
-
+	
+rdd_text=""
 rdd = sc.textFile(in_file)
 for line in rdd.collect():
-	print line.encode("utf-8")
+	rdd_text += line.encode("utf-8")+"\n"
 
-
-#rdd.foreach(print)
-#rdd.take(100).foreach(println)
-
-exit()
-
-import warc
+import sys
 import nltk
 from nltk.corpus import stopwords
 from nltk.chunk import conlltags2tree, tree2conlltags
@@ -74,7 +69,6 @@ def entity_recognition(text):
 
 def do_query(query):
 	import requests
-	import sys
 	import json, re
 	import collections, math
 
@@ -155,35 +149,34 @@ def do_query(query):
 	
 # ------ main program ------
 
-f = warc.open("CommonCrawl-sample.warc") #filepath
-
 from bs4 import BeautifulSoup
 
-c=1
+#split per warc file
+d = "WARC/1.0"
+s=rdd_text.split(d)
 
-for num, record in enumerate(f):
-	if record['WARC-Type'] == 'response':
-		# print record['WARC-Record-ID']
-		# print record['WARC-Target-URI']
-		# print record['Content-Length']
-		html_doc = record.payload.read()
-		#print '=-=-' * 10
+for x in range(len(s)):
+	warc_resp=s[x].lstrip()
+	#process warc response only
+	if warc_resp.startswith("WARC-Type: response"):
 		
-		soup = BeautifulSoup(html_doc, 'lxml')
+		#get key first
+		payload = warc_resp
+		key = None
+		for line in payload.splitlines():
+			if line.startswith(record_attribute):
+				key = line.split(': ')[1]
+				break
+		
+		if key:
+			#parse HTML		
+			soup = BeautifulSoup(warc_resp, 'lxml')
+			body=(soup.get_text().encode('utf-8'))
 
-		body=(soup.get_text().encode('utf-8'))
-		
-		sent_entities = entity_recognition(unicode(body,errors='ignore'))
-		
-		for entities in sent_entities:
-			for entity in entities:
-				entityID=do_query(entity)
-				if entityID!=None:
-					print record[record_attribute]+'\t'+entity+'\tm/'+entityID
-		
-		c=c+1
-	
-	if c > 1:
-		print 'TERMINATED '+str(c)
-		break
-		
+			sent_entities = entity_recognition(unicode(body,errors='ignore'))
+
+			for entities in sent_entities:
+				for entity in entities:
+					entityID=do_query(entity)
+					if entityID!=None:
+						print key+'\t'+entity+'\tm/'+entityID
