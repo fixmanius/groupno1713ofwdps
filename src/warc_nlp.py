@@ -32,12 +32,13 @@ def entity_recognition(text):
 			
 		#POS-TAG
 		tagged_words = nltk.pos_tag(words)
-
+		
 		#NER
-		ne_tagged_words = nltk.ne_chunk(tagged_words)				
+		#ne_tagged_words = nltk.ne_chunk(tagged_words)
+		
 		#iob_tagged = tree2conlltags(ne_tagged_words)
 		
-		propernouns = [word for word,pos in tagged_words if pos == 'NNP']
+		propernouns = [word for word,pos in tagged_words if (pos == 'NNP' or pos == 'NNPS')]
 		
 		results_list.append(propernouns)
 		
@@ -48,8 +49,40 @@ def entity_recognition(text):
 	
 	return results_list
 
+def hamming_dist(str1, str2):
+	diffs = 0
+	for ch1, ch2 in zip(str1, str2):
+		if ch1 != ch2:
+			diffs += 1
+	return diffs
+
+def char_dice_coefficient(a, b):
+    a_bigrams = set(a)
+    b_bigrams = set(b)
+    overlap = len(a_bigrams & b_bigrams)
+    return overlap * 2.0/(len(a_bigrams) + len(b_bigrams))
+
+def bigram_dice_coefficient(a, b):
+    """dice coefficient 2nt/na + nb."""
+    if not len(a) or not len(b): return 0.0
+    if len(a) == 1:  a=a+u'.'
+    if len(b) == 1:  b=b+u'.'
+    
+    a_bigram_list=[]
+    for i in range(len(a)-1):
+      a_bigram_list.append(a[i:i+2])
+    b_bigram_list=[]
+    for i in range(len(b)-1):
+      b_bigram_list.append(b[i:i+2])
+      
+    a_bigrams = set(a_bigram_list)
+    b_bigrams = set(b_bigram_list)
+    overlap = len(a_bigrams & b_bigrams)
+    dice_coeff = overlap * 2.0/(len(a_bigrams) + len(b_bigrams))
+    return dice_coeff
 
 def do_query(query):
+	#query="LEGO"
 	import requests
 	import json, re
 	import collections, math
@@ -67,16 +100,16 @@ def do_query(query):
 	if response:
 		response = response.json()
 		for hit in response.get('hits', {}).get('hits', []):
-			freebase_id = hit.get('_source', {}).get('resource')
 			label = hit.get('_source', {}).get('label')
-			score = hit.get('_score', 0)
+			if hamming_dist(query,label)<=2 and bigram_dice_coefficient(query,label)>0.6 and char_dice_coefficient(query,label)>0.9:
+				freebase_id = hit.get('_source', {}).get('resource')
+				score = hit.get('_score', 0)
 
-			ids.add( freebase_id )
-			scores[freebase_id] = max(scores.get(freebase_id, 0), score)
-			labels.setdefault(freebase_id, set()).add( label )
+				ids.add( freebase_id )
+				scores[freebase_id] = max(scores.get(freebase_id, 0), score)
+				labels.setdefault(freebase_id, set()).add( label )
 
 	#print('Found %s results.' % len(labels))
-
 
 	prefixes = """
 	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -172,3 +205,4 @@ for x in range(len(s)):
 					entityID=do_query(entity)
 					if entityID!=None:
 						print key+'\t'+entity+'\tm/'+entityID
+				#exit()
