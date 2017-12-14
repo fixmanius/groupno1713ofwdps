@@ -34,7 +34,10 @@ def entity_recognition(text):
 		tagged_words = nltk.pos_tag(words)
 		
 		#NER
-		#ne_tagged_words = nltk.ne_chunk(tagged_words)
+		'''ne_tagged_words = nltk.ne_chunk(tagged_words, True)
+		for enum, x in enumerate(ne_tagged_words):
+			print x," WAWAW ",x.node
+		exit()'''
 		
 		#iob_tagged = tree2conlltags(ne_tagged_words)
 		
@@ -110,6 +113,11 @@ def do_query(query):
 				labels.setdefault(freebase_id, set()).add( label )
 
 	#print('Found %s results.' % len(labels))
+	'''if query=="Date":
+		for x in labels:
+			print x
+			print scores[x]
+		exit()'''
 
 	prefixes = """
 	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -141,7 +149,11 @@ def do_query(query):
 			facts[i] = n
 
 	def get_best(i):
-		return math.log(facts[i]) * scores[i]
+		ret=0
+		if facts[i]!=0:
+			#print math.log(facts[i]),"*",scores[i]
+			ret=math.log(facts[i]) * scores[i]
+		return ret
 
 	#print('Best matches:')
 	best=None
@@ -149,7 +161,7 @@ def do_query(query):
 		
 		#getbest
 		if enum==0:
-			best=i[8:]			
+			best=i[8:]
 	
 		#print('No '+str(enum+1))
 		#print(i, ':', labels[i], '(facts: %s, score: %.2f)' % (facts[i], scores[i]) )
