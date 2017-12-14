@@ -9,5 +9,5 @@ run_wdps1713.sh WARC-Record-ID hdfs:///user/bbkruit/CommonCrawl-sample.warc.gz
 5. Use beautiful soup to extract only text content in <body>.
 6. Go through entity_recognition function which performs NLP. The output of the function is a list of proper nouns (NNP).
 7. For each noun in step 6, go to do_query function which runs the query of the noun in elastic search.
-8. Out of the candidates from elastic search, query each in trident and then return entity ID of the one with most matches (top match).
+8. Out of the candidates from elastic search, query each in trident and then return entity ID of the one with most popular one (freebase score * SPARQL hit).
 9. Go through each noun and stream the results (key, noun, entity ID) to output.
